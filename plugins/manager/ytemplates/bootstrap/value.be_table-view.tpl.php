@@ -5,8 +5,8 @@
  * @psalm-scope-this rex_yform_value_be_table
  */
 
-$columns ??= [];
-$data ??= [];
+$columns = $columns ?? [];
+$data = $data ?? [];
 
 $class_group = trim('form-group ' . $this->getHTMLClass() . ' ' . $this->getWarningClass());
 
@@ -29,12 +29,12 @@ $main_id = $this->params['this']->getObjectparams('main_id');
 
 ?>
 <div class="<?= $class_group ?>" id="<?= $this->getHTMLId() ?>">
-    <label class="control-label" for="<?= $this->getFieldId() ?>"><?= $this->getLabel() ?></label>
+    <label class="control-label" for="<?php echo $this->getFieldId() ?>"><?php echo $this->getLabel() ?></label>
     <table class="table table-hover table-bordered">
         <thead>
         <tr>
             <?php foreach ($columns as $column): ?>
-                <th class="type-<?= $column['field']->getElement(0) ?>"><?= rex_escape($column['label']) ?></th>
+                <th class="type-<?= $column['field']->getElement(0) ?>"><?php echo rex_escape($column['label']) ?></th>
             <?php endforeach ?>
         </tr>
         </thead>
@@ -48,7 +48,7 @@ $main_id = $this->params['this']->getObjectparams('main_id');
                     /** @var rex_yform_value_abstract $field */
                     $field = $column['field'];
                     $field->params['form_output'] = [];
-                    $field->params['this']->setObjectparams('form_name', $this->getParam('form_name') . '][' . $this->getId() . '][' . $i);
+                    $field->params['this']->setObjectparams('form_name', $this->getName() . '.' . $i);
                     $field->params['this']->setObjectparams('form_ytemplate', $ytemplates);
                     $field->params['this']->setObjectparams('main_id', $main_id);
                     $field->params['this']->canEdit(false);
@@ -72,5 +72,5 @@ $main_id = $this->params['this']->getObjectparams('main_id');
         <?php endforeach ?>
         </tbody>
     </table>
-    <?= $notice ?>
+    <?php echo $notice ?>
 </div>

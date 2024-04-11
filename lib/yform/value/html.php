@@ -48,4 +48,5 @@ class rex_yform_value_html extends rex_yform_value_abstract
             'is_hiddeninlist' => true,
         ];
     }
+
 }

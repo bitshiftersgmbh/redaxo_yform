@@ -18,7 +18,7 @@ class rex_yform_list implements rex_url_provider_interface
     /** @var rex_yform_manager_dataset */
     private $currentItem;
     /** @var bool */
-    /** @phpstan-ignore-next-line */
+    /* @phpstan-ignore-next-line */
     private $debug;
     /** @var string */
     private $noRowsMessage;
@@ -129,7 +129,7 @@ class rex_yform_list implements rex_url_provider_interface
         $this->rowAttributes = [];
 
         // --------- Pagination Attributes
-        $cursorName = $listName . '_start';
+        $cursorName = $listName .'_start';
         if (null === rex_request($cursorName, 'int', null) && rex_request('start', 'int')) {
             // BC: Fallback to "start"
             $cursorName = 'start';
@@ -147,7 +147,7 @@ class rex_yform_list implements rex_url_provider_interface
         }
 
         // TODO: Performance
-        $this->rows = count($this->query->findValues($this->query->getTableAlias() . '.id'));
+        $this->rows = count($this->query->findValues($this->query->getTableAlias().'.id'));
         $this->pager->setRowCount($this->rows);
 
         $rowsPerPage = $this->pager->getRowsPerPage();
@@ -348,6 +348,10 @@ class rex_yform_list implements rex_url_provider_interface
      */
     public function setRowAttributes($attr): void
     {
+        if (!is_array($attr) && !is_callable($attr)) {
+            throw new InvalidArgumentException('$attr must be an array or a callable, but "'.get_debug_type($attr).'" given');
+        }
+
         $this->rowAttributes = $attr;
     }
 
@@ -414,7 +418,7 @@ class rex_yform_list implements rex_url_provider_interface
      */
     public function getColumnLayout($columnName)
     {
-        if (isset($this->columnLayouts[$columnName])) {
+        if (isset($this->columnLayouts[$columnName]) && is_array($this->columnLayouts[$columnName])) {
             return $this->columnLayouts[$columnName];
         }
 
@@ -596,7 +600,7 @@ class rex_yform_list implements rex_url_provider_interface
      */
     public function getColumnParams($columnName)
     {
-        if (isset($this->columnParams[$columnName])) {
+        if (isset($this->columnParams[$columnName]) && is_array($this->columnParams[$columnName])) {
             return $this->columnParams[$columnName];
         }
         return [];
@@ -611,7 +615,7 @@ class rex_yform_list implements rex_url_provider_interface
      */
     public function hasColumnParams($columnName)
     {
-        return isset($this->columnParams[$columnName]) && count($this->columnParams[$columnName]) > 0;
+        return isset($this->columnParams[$columnName]) && is_array($this->columnParams[$columnName]) && count($this->columnParams[$columnName]) > 0;
     }
 
     /**
@@ -655,7 +659,7 @@ class rex_yform_list implements rex_url_provider_interface
     {
         $position = array_search($columnName, $this->columnNames);
         if (false === $position) {
-            throw new InvalidArgumentException('Unkown column name "' . $columnName . '".');
+            throw new InvalidArgumentException('Unkown column name "'.$columnName.'".');
         }
         return $position;
     }
@@ -723,9 +727,9 @@ class rex_yform_list implements rex_url_provider_interface
     {
         $tableColumn = [];
         if (is_numeric($width)) {
-            $width .= 'px';
+            $width = $width . 'px';
         }
-        if ('*' !== $width) {
+        if ($width && '*' != $width) {
             $tableColumn['style'] = 'width:' . $width;
         }
         if ($span) {
@@ -750,6 +754,9 @@ class rex_yform_list implements rex_url_provider_interface
 
     // ---------------------- Url generation
 
+    /**
+     * {@inheritdoc}
+     */
     public function getUrl(array $params = [], $escape = true)
     {
         $params = array_merge($this->getParams(), $params);
@@ -881,7 +888,7 @@ class rex_yform_list implements rex_url_provider_interface
 
         $default = strtolower($default);
         if (!in_array($default, ['asc', 'desc'], true)) {
-            throw new InvalidArgumentException('Default sort type must be "asc", "desc" or null, but "' . $default . '" given');
+            throw new InvalidArgumentException('Default sort type must be "asc", "desc" or null, but "'.$default.'" given');
         }
 
         return $default;
@@ -936,7 +943,7 @@ class rex_yform_list implements rex_url_provider_interface
      */
     public function replaceVariable($string, $varname)
     {
-        return str_replace(['###' . $varname . '###', '___' . $varname . '___'], (string) rex_escape((string) $this->getValue($varname)), $string);
+        return str_replace(['###' . $varname . '###','___'.$varname.'___'], (string) rex_escape((string)$this->getValue($varname)), $string);
     }
 
     /**
@@ -991,7 +998,7 @@ class rex_yform_list implements rex_url_provider_interface
         if (is_array($format)) {
             // Callbackfunktion -> Parameterliste aufbauen
             if ($this->isCustomFormat($format)) {
-                $format[2] ??= [];
+                $format[2] = $format[2] ?? [];
                 $format[1] = [$format[1], ['list' => $this, 'field' => $field, 'value' => $value, 'format' => $format[0], 'escape' => $escape, 'params' => $format[2]]];
             }
 

@@ -83,7 +83,7 @@ class rex_radio
      */
     public function setStyle($style)
     {
-        if (str_contains($style, 'class=')) {
+        if (false !== strpos($style, 'class=')) {
             if (preg_match('/class=["\']?([^"\']*)["\']?/i', $style, $matches)) {
                 $this->setAttribute('class', $matches[1]);
             }

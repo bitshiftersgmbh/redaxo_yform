@@ -7,7 +7,7 @@
  * @author <a href="http://www.yakamara.de">www.yakamara.de</a>
  */
 
-final class rex_yform_manager_table implements ArrayAccess
+class rex_yform_manager_table implements ArrayAccess
 {
     public static array $tableLayouts = [];
     public static string $defaultTableLayout = 'yform/manager/page/layout.php';
@@ -15,15 +15,15 @@ final class rex_yform_manager_table implements ArrayAccess
     protected $values = [];
     protected $columns = [];
 
-    /** @var array<rex_yform_manager_field> */
+    /** @var rex_yform_manager_field[] */
     protected $fields = [];
 
-    /** @var array<rex_yform_manager_field> */
+    /** @var rex_yform_manager_field[] */
     protected $relations;
 
     protected static bool $debug = false;
 
-    /** @var array<self> */
+    /** @var self[] */
     protected static $tables = [];
     protected static bool $loadedAllTables = false;
 
@@ -56,7 +56,7 @@ final class rex_yform_manager_table implements ArrayAccess
     /**
      * @param string $tableName
      *
-     * @return rex_yform_manager_table|null
+     * @return null|rex_yform_manager_table
      */
     public static function get($tableName)
     {
@@ -71,7 +71,7 @@ final class rex_yform_manager_table implements ArrayAccess
             return null;
         }
 
-        return self::$tables[$tableName] = new self($cache[$tableName]);
+        return self::$tables[$tableName] = new static($cache[$tableName]);
     }
 
     public static function require(string $tableName): self
@@ -79,7 +79,7 @@ final class rex_yform_manager_table implements ArrayAccess
         $table = self::get($tableName);
 
         if (!$table) {
-            throw new rex_exception('Table "' . $tableName . '" does not exist');
+            throw new rex_exception('Table "'.$tableName.'" does not exist');
         }
 
         return $table;
@@ -102,7 +102,7 @@ final class rex_yform_manager_table implements ArrayAccess
     }
 
     /**
-     * @return array<rex_yform_manager_table>
+     * @return rex_yform_manager_table[]
      */
     public static function getAll()
     {
@@ -143,13 +143,13 @@ final class rex_yform_manager_table implements ArrayAccess
         $table_name = $this->getTableName();
         $name = $this->getName();
         if ($name === $table_name) {
-            $name = 'translate:' . $name;
+            $name = 'translate:'.$name;
         }
-        $name = rex_i18n::translate($name, false);
+        $name = rex_i18n::translate($name);
         if (preg_match('/^\[translate:(.*?)\]$/', $name, $match)) {
             $name = $match[1];
         }
-        return rex_i18n::translate($name, false);
+        return \rex_i18n::translate($name);
     }
 
     public function getId()
@@ -244,7 +244,7 @@ final class rex_yform_manager_table implements ArrayAccess
     /**
      * Fields of yform Definitions.
      *
-     * @return array<rex_yform_manager_field>
+     * @return rex_yform_manager_field[]
      */
     public function getFields(array $filter = [])
     {
@@ -274,7 +274,7 @@ final class rex_yform_manager_table implements ArrayAccess
     }
 
     /**
-     * @return array<rex_yform_manager_field>
+     * @return rex_yform_manager_field[]
      */
     public function getValueFields(array $filter = [])
     {
@@ -300,7 +300,7 @@ final class rex_yform_manager_table implements ArrayAccess
     }
 
     /**
-     * @return array<rex_yform_manager_field>
+     * @return rex_yform_manager_field[]
      */
     public function getRelations()
     {
@@ -314,7 +314,7 @@ final class rex_yform_manager_table implements ArrayAccess
     /**
      * @param string $table
      *
-     * @return array<rex_yform_manager_field>
+     * @return rex_yform_manager_field[]
      */
     public function getRelationsTo($table)
     {
@@ -429,7 +429,7 @@ final class rex_yform_manager_table implements ArrayAccess
     /**
      * @param int $id
      *
-     * @return rex_yform_manager_dataset|null
+     * @return null|rex_yform_manager_dataset
      */
     public function getDataset($id)
     {
@@ -564,6 +564,6 @@ final class rex_yform_manager_table implements ArrayAccess
 
     public function getCSRFKey(): string
     {
-        return 'table_field-' . $this->getTableName();
+        return 'table_field-'.$this->getTableName();
     }
 }

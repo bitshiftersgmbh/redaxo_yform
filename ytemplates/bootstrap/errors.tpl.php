@@ -9,17 +9,14 @@
 
 <?php
 if ($this->objparams['warning_messages'] || $this->objparams['unique_error']):
-    if ($this->objparams['Error-occured']):
-        if($this->objparams['warning_intro']) { ?>
-            <p><?= $this->objparams['warning_intro'] ?></p>
-        <?php } ?>
+    if ($this->objparams['Error-occured']): ?>
         <dl class="dl-horizontal">
-            <dt><?= $this->objparams['Error-occured'] ?></dt>
+            <dt><?php echo $this->objparams['Error-occured'] ?></dt>
             <dd>
                 <ul>
     <?php else: ?>
                 <ul>
-    <?php endif ?>
+    <?php endif; ?>
                     <?php
 
     $warning_messages = [];
@@ -36,7 +33,7 @@ if ($this->objparams['warning_messages'] || $this->objparams['unique_error']):
     }
 
     if ('' != $this->objparams['unique_error']) {
-        echo '<li>' . rex_i18n::translate(preg_replace('~\\*|:|\\(.*\\)~Usim', '', $this->objparams['unique_error'])) . '</li>';
+        echo '<li>'.rex_i18n::translate(preg_replace('~\\*|:|\\(.*\\)~Usim', '', $this->objparams['unique_error'])).'</li>';
     }
 
     ?>

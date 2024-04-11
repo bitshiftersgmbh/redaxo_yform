@@ -12,13 +12,15 @@ class rex_yform_rest_auth_token
     public static $tokenList = [];
 
     /**
+     * @param rex_yform_rest_route $route
      * @throws rex_sql_exception
+     * @return bool
      */
     public static function checkToken(rex_yform_rest_route $route): bool
     {
         $myToken = rex_yform_rest::getHeader('token');
 
-        $TokenAuths = rex_sql::factory()->getArray('select * from ' . rex::getTable('yform_rest_token') . ' where status=1 and token=? and FIND_IN_SET(?, paths)', [$myToken, $route->getPath()]);
+        $TokenAuths = rex_sql::factory()->getArray('select * from '.rex::getTable('yform_rest_token').' where status=1 and token=? and FIND_IN_SET(?, paths)', [$myToken, $route->getPath()]);
 
         if (1 != count($TokenAuths)) {
             return false;
@@ -49,6 +51,7 @@ class rex_yform_rest_auth_token
     }
 
     /**
+     * @param array $TokenAuth
      * @throws rex_sql_exception
      */
     public static function addHit(array $TokenAuth)
@@ -62,13 +65,14 @@ class rex_yform_rest_auth_token
     }
 
     /**
+     * @param int $id
      * @throws rex_sql_exception
      * @return null|mixed
      */
     public static function get(int $id)
     {
         if (0 == count(self::$tokenList)) {
-            self::$tokenList = rex_sql::factory()->getArray('select * from ' . rex::getTable('yform_rest_token'));
+            self::$tokenList = rex_sql::factory()->getArray('select * from '.rex::getTable('yform_rest_token'));
         }
 
         foreach (self::$tokenList as $token) {
@@ -80,6 +84,8 @@ class rex_yform_rest_auth_token
     }
 
     /**
+     * @param string $interval
+     * @param $token_id
      * @throws rex_sql_exception
      * @return null|mixed
      */
@@ -87,17 +93,17 @@ class rex_yform_rest_auth_token
     {
         switch ($interval) {
             case 'month':
-                $count = rex_sql::factory()->setQuery('select count(*) as c from ' . rex::getTable('yform_rest_token_access') . ' where token_id = ? and datetime_created LIKE ?', [$token_id, date('Y-m-') . '%']);
+                $count = rex_sql::factory()->setQuery('select count(*) as c from '.rex::getTable('yform_rest_token_access').' where token_id = ? and datetime_created LIKE ?', [$token_id, date('Y-m-').'%']);
                 break;
             case 'day':
-                $count = rex_sql::factory()->setQuery('select count(*) as c from ' . rex::getTable('yform_rest_token_access') . ' where token_id = ? and datetime_created LIKE ?', [$token_id, date('Y-m-d ') . '%']);
+                $count = rex_sql::factory()->setQuery('select count(*) as c from '.rex::getTable('yform_rest_token_access').' where token_id = ? and datetime_created LIKE ?', [$token_id, date('Y-m-d ').'%']);
                 break;
             case 'hour':
-                $count = rex_sql::factory()->setQuery('select count(*) as c from ' . rex::getTable('yform_rest_token_access') . ' where token_id = ? and datetime_created LIKE ?', [$token_id, date('Y-m-d H:') . '%']);
+                $count = rex_sql::factory()->setQuery('select count(*) as c from '.rex::getTable('yform_rest_token_access').' where token_id = ? and datetime_created LIKE ?', [$token_id, date('Y-m-d H:').'%']);
                 break;
             case 'overall':
             default:
-                $count = rex_sql::factory()->setQuery('select count(*) as c from ' . rex::getTable('yform_rest_token_access') . ' where token_id = ?', [$token_id]);
+                $count = rex_sql::factory()->setQuery('select count(*) as c from '.rex::getTable('yform_rest_token_access').' where token_id = ?', [$token_id]);
                 break;
         }
 

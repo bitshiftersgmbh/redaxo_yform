@@ -84,6 +84,7 @@ class rex_yform_action_tpl2email extends rex_yform_action_abstract
             dump('Template: "' . rex_escape($template_name) . '" not found');
         }
 
+        return;
     }
 
     public function getDescription(): string

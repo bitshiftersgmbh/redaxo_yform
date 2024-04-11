@@ -10,7 +10,7 @@ Die Klasse muss zunächst registriert werden siehe [YOrm](yorm.md), damit auf di
 
 > Hinweis: Die Tabellem müssen mit YForm verwaltbar sein, da diese Felder automatisch genutzt werden.
 
-Die Schnittstelle orientiert sich an <https://jsonapi.org/format/>. Aufrufe und JSON Formate sind ähnlich bis exakt so aufgebaut.
+Die Schnittstelle orientiert sich an https://jsonapi.org/format/. Aufrufe und JSON Formate sind ähnlich bis exakt so aufgebaut.
 
 [Im Rahmen einer REDAXOHour ist eine Video Einführung entstanden, die viele Punkte dieses Kapitels erklärt.](https://www.youtube.com/watch?v=o88DHxsOLOs)
 
@@ -18,11 +18,12 @@ Die Schnittstelle orientiert sich an <https://jsonapi.org/format/>. Aufrufe und 
 
 Die Zugriff über REST muss für jeden Endpoint einzeln definiert werden. D.h. man muss für jede Tabelle und für unterschiedliche Nutzungszenarien diese fest definieren.
 
-Die Standardroute der REST-API ist auf "/rest" gesetzt, d.h. hierunter können eigene Routen definiert werden.
+Die Standardroute der REST-API ist auf "/rest" gesetzt, d.h. hierunter können eigene Routen definiert werden. 
 
 Die Konfiguration wird über PHP festgelegt und sollte im project-AddOn in der boot.php abgelegt werden. Kann aber auch an andere Stelle abgelegt werden, solange diese während der Initialisierung aufgerufen wird.
 
 Hier ein Beispiel, um YCom-User über die REST-API zu verwalten:
+
 
 ```php
 <?php
@@ -40,13 +41,13 @@ $route = new \rex_yform_rest_route(
         'query' => \rex_ycom_user::query(),
         'get' => [
             'fields' => [
-                'rex_ycom_user' => [ /* Name der Model-Klasse, nicht der Tabelle */
+                'rex_ycom_user' => [
                     'id',
                     'login',
                     'email',
                     'name'
                  ],
-                 'rex_ycom_group' => [ /* Name der Model-Klasse, nicht der Tabelle */
+                 'rex_ycom_group' => [
                     'id',
                     'name'
                  ]
@@ -54,7 +55,7 @@ $route = new \rex_yform_rest_route(
         ],
         'post' => [
             'fields' => [
-                'rex_ycom_user' => [ /* Name der Model-Klasse, nicht der Tabelle */
+                'rex_ycom_user' => [
                     'login',
                     'email',
                     'ycom_groups'
@@ -63,7 +64,7 @@ $route = new \rex_yform_rest_route(
         ],
         'delete' => [
             'fields' => [
-                'rex_ycom_user' => [ /* Name der Model-Klasse, nicht der Tabelle */
+                'rex_ycom_user' => [
                     'id',
                     'login'
                 ]
@@ -76,8 +77,10 @@ $route = new \rex_yform_rest_route(
 \rex_yform_rest::addRoute($route);
 ```
 
-Dieses Beispiel führt dazu, dass man User über das PlugIn auslesen kann, wie auch User einspielen kann, aber nur mit den Feldern: login,email,ycom_groups.
+Dieses Beispiel führt dazu, dass man User über das PlugIn auslesen kann, wie auch User einspielen kann, aber nur mit den Feldern: login,email,ycom_groups. 
 Löschen kann man jeden User. Über Filter bei id oder login, lassen sich bestimmte User filtern und als Ganzes löschen.
+
+
 
 ### Route-Konfiguration
 
@@ -95,6 +98,7 @@ Beispiele
 
 Wenn man keine Authentifizierung einträgt kann jeder diese Daten entsprechend der weiteren Konfiguration nutzen. Sollte man nur bei Tabellen wie PLZ oder ähnlich offensichtlich freien Daten machen.
 
+
 `table`
 Hier wird die entsprechend Tabelle übergeben, die in YOrm definiert ist.
 
@@ -104,8 +108,8 @@ Beispiel
 
 ## Nutzung eines Endpoints
 
-URL (z. B. <https://domain/rest/v1/user>)
-In den Beispielen wird davon ausgegangen, dass es keine eigene Authentifizierung gibt. Um zu sehen wie die Aufrufe funktionieren bitte hier <https://jsonapi.org/format/> nachschlagen.
+URL (z. B. https://domain/rest/v1/user)
+In den Beispielen wird davon ausgegangen, dass es keine eigene Authentifizierung gibt. Um zu sehen wie die Aufrufe funktionieren bitte hier https://jsonapi.org/format/ nachschlagen. 
 
 ### GET
 
@@ -116,14 +120,12 @@ RequestType: ````GET````
 URL: ```https://url.localhost/rest/v1/users/[id]```
 
 Header:
-
 ```
 Content-Type: application/x-www-form-urlencoded
 token: [token]
 ```
 
 Response:
-
 ```
 {
     "id": "[id]",
@@ -145,6 +147,7 @@ Response:
     }
 }
 ```
+
 
 #### Filter
 
@@ -168,15 +171,13 @@ RequestType: ````POST````
 
 URL: ```https://url.localhost/rest/v1/users/```
 
-Header:
-
+Header: 
 ```
 Content-Type: application/x-www-form-urlencoded
 token: [token]
 ```
 
-Body:
-
+Body: 
 ```
 {
     "data": {
@@ -210,14 +211,12 @@ RequestType: ````DELETE````
 URL: ```https://url.localhost/rest/v1/users/?filter[login]=jannie```
 
 Header:
-
 ```
 Content-Type: application/x-www-form-urlencoded
 token: [token]
 ```
 
 Response:
-
 ```
 {
     "all": 1,
@@ -239,14 +238,12 @@ URL: ```https://url.localhost/rest/v1/users/[id]```
 oder ```https://url.localhost/rest/v1/users/?filter[id]=[id]```
 
 Header:
-
 ```
 Content-Type: application/x-www-form-urlencoded
 token: [token]
 ```
 
 Response:
-
 ```
 {
     "all": 1,
@@ -259,7 +256,6 @@ Response:
 ```
 
 Response ohne Treffer:
-
 ```
 {
     "all": 0,
@@ -267,16 +263,15 @@ Response ohne Treffer:
     "failed": 0
 }
 ```
-
 ## Authentifizierung
 
 ### Standardauthentifizierung
 
-Wenn im Model folgende Authentifizerung angegeben wurde: `'\rex_yform_rest_auth_token::checkToken()'` ist das die Standardauthentifizierung mit Token aus der YForm:Rest:Tokenverwaltung.
+Wenn im Model folgende Authentifizerung angegeben wurde: `'\rex_yform_rest_auth_token::checkToken()'` ist das die Standardauthentifizierung mit Tokens aus der YForm:Rest:Tokenverwaltung.
 
-Die hier erstellen Token werden entsprechend überprüft und müssen im Header übergeben werden. `token=###meintoken###` Nur aktive Token funktionieren.
-Über das REST PlugIn kann man im Backend diese Zugriffe einschränken und tracken. D.h. Es können Einschränkungen wir Zugriffe / Stunde oder ähnliches eingestellt werden.
-Jeder Zugriff auf die REST-API wird erfasst.
+Die hier erstellen Token werden entsprechend überprüft und müssen im Header übergeben werden. `token=###meintoken###` Nur aktive Tokens funktionieren. 
+Über das REST PlugIn kann man im Backend diese Zugriffe einschränken und tracken. D.h. Es können Einschränkungen wir Zugriffe / Stunde oder ähnliches eingestellt werden. 
+Jeder Zugriff auf die REST-API wird erfasst. 
 
 ## Header
 
