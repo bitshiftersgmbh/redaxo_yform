@@ -1,7 +1,8 @@
 package: yform/manager
-version: '4.1.1'
+version: '4.2.1'
+license: MIT
 author: 'Jan Kristinus, Gregor Harlan'
-supportpage: 'https://github.com/yakamara/redaxo_yform/issues'
+supportpage: 'https://github.com/yakamara/yform/issues'
 compile: 0
 
 page:

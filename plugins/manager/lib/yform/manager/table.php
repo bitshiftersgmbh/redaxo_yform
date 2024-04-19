@@ -7,7 +7,7 @@
  * @author <a href="http://www.yakamara.de">www.yakamara.de</a>
  */
 
-class rex_yform_manager_table implements ArrayAccess
+final class rex_yform_manager_table implements ArrayAccess
 {
     public static array $tableLayouts = [];
     public static string $defaultTableLayout = 'yform/manager/page/layout.php';
@@ -15,15 +15,15 @@ class rex_yform_manager_table implements ArrayAccess
     protected $values = [];
     protected $columns = [];
 
-    /** @var rex_yform_manager_field[] */
+    /** @var array<rex_yform_manager_field> */
     protected $fields = [];
 
-    /** @var rex_yform_manager_field[] */
+    /** @var array<rex_yform_manager_field> */
     protected $relations;
 
     protected static bool $debug = false;
 
-    /** @var self[] */
+    /** @var array<self> */
     protected static $tables = [];
     protected static bool $loadedAllTables = false;
 
@@ -56,7 +56,7 @@ class rex_yform_manager_table implements ArrayAccess
     /**
      * @param string $tableName
      *
-     * @return null|rex_yform_manager_table
+     * @return rex_yform_manager_table|null
      */
     public static function get($tableName)
     {
@@ -71,7 +71,7 @@ class rex_yform_manager_table implements ArrayAccess
             return null;
         }
 
-        return self::$tables[$tableName] = new static($cache[$tableName]);
+        return self::$tables[$tableName] = new self($cache[$tableName]);
     }
 
     public static function require(string $tableName): self
@@ -79,7 +79,7 @@ class rex_yform_manager_table implements ArrayAccess
         $table = self::get($tableName);
 
         if (!$table) {
-            throw new rex_exception('Table "'.$tableName.'" does not exist');
+            throw new rex_exception('Table "' . $tableName . '" does not exist');
         }
 
         return $table;
@@ -102,7 +102,7 @@ class rex_yform_manager_table implements ArrayAccess
     }
 
     /**
-     * @return rex_yform_manager_table[]
+     * @return array<rex_yform_manager_table>
      */
     public static function getAll()
     {
@@ -143,13 +143,13 @@ class rex_yform_manager_table implements ArrayAccess
         $table_name = $this->getTableName();
         $name = $this->getName();
         if ($name === $table_name) {
-            $name = 'translate:'.$name;
+            $name = 'translate:' . $name;
         }
-        $name = rex_i18n::translate($name);
+        $name = rex_i18n::translate($name, false);
         if (preg_match('/^\[translate:(.*?)\]$/', $name, $match)) {
             $name = $match[1];
         }
-        return \rex_i18n::translate($name);
+        return rex_i18n::translate($name, false);
     }
 
     public function getId()
@@ -244,7 +244,7 @@ class rex_yform_manager_table implements ArrayAccess
     /**
      * Fields of yform Definitions.
      *
-     * @return rex_yform_manager_field[]
+     * @return array<rex_yform_manager_field>
      */
     public function getFields(array $filter = [])
     {
@@ -274,7 +274,7 @@ class rex_yform_manager_table implements ArrayAccess
     }
 
     /**
-     * @return rex_yform_manager_field[]
+     * @return array<rex_yform_manager_field>
      */
     public function getValueFields(array $filter = [])
     {
@@ -300,7 +300,7 @@ class rex_yform_manager_table implements ArrayAccess
     }
 
     /**
-     * @return rex_yform_manager_field[]
+     * @return array<rex_yform_manager_field>
      */
     public function getRelations()
     {
@@ -314,7 +314,7 @@ class rex_yform_manager_table implements ArrayAccess
     /**
      * @param string $table
      *
-     * @return rex_yform_manager_field[]
+     * @return array<rex_yform_manager_field>
      */
     public function getRelationsTo($table)
     {
@@ -429,7 +429,7 @@ class rex_yform_manager_table implements ArrayAccess
     /**
      * @param int $id
      *
-     * @return null|rex_yform_manager_dataset
+     * @return rex_yform_manager_dataset|null
      */
     public function getDataset($id)
     {
@@ -564,6 +564,6 @@ class rex_yform_manager_table implements ArrayAccess
 
     public function getCSRFKey(): string
     {
-        return 'table_field-'.$this->getTableName();
+        return 'table_field-' . $this->getTableName();
     }
 }
