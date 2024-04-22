@@ -23,16 +23,28 @@ if(!is_null($historyId) && !is_null($table)):
 
 $diffs = [
     'changed' => ['icon' => 'fas fa-not-equal', 'count' => 0, 'rows' => ''],
-    'unchanged' => ['icon' => 'fas fa-equals', 'count' => 0, 'rows' => ''],
     'added' => ['icon' => 'fas fa-layer-plus', 'count' => 0, 'rows' => ''],
     'removed' => ['icon' => 'far fa-layer-minus', 'count' => 0, 'rows' => ''],
+    'unchanged' => ['icon' => 'fas fa-equals', 'count' => 0, 'rows' => ''],
 ];
 
+
 $fieldsInDataset = [];
+
 $tableFields = $table->getFields();
 
 foreach ($table->getValueFields() as $field) {
     if (!array_key_exists($field->getName(), $data)) {
+        if($currentDataset->hasValue($field->getName())) {
+            $diffs['added']['count']++;
+            $diffs['added']['rows'] .= '
+                <tr>
+                    <th>' . rex_yform_history_helper::getFieldTypeIcon($field) . ' ' .  $field->getLabel() . '</th>
+                    <td>' . rex_yform_history_helper::getFieldValue($field, $currentDataset, $table) . '</td>
+                    <td><em>' . rex_i18n::msg('yform_history_diff_not_yet_existing') . '</em></td>
+                </tr>';
+        }
+
         continue;
     }
 
@@ -47,13 +59,13 @@ foreach ($table->getValueFields() as $field) {
     // count diffs
     if(!$currentDataset->hasValue($field->getName())) {
         $change = 'deleted';
-    } elseif("".$historyValue != "".$currentValue) {
+    } elseif("" . $historyValue != "" . $currentValue) {
         $change = 'changed';
     }
 
     $diffs[$change]['count']++;
 
-    if (is_callable($class, 'getListValue') && !in_array($field->getTypeName(), ['text','textarea'])) {
+    if (is_callable($class, 'getListValue') && !in_array($field->getTypeName(), ['text', 'textarea'])) {
         /** @var $class rex_yform_value_abstract */
 
         // to ensure correct replacement with list value, ensure datatype by current dataset
@@ -102,7 +114,7 @@ foreach ($table->getValueFields() as $field) {
 
             default:
                 if($historyValue != $currentValue) {
-                    $historyValue = '<span class="diff">'. $historyValue .'</span>';
+                    $historyValue = '<span class="diff">' . $historyValue . '</span>';
                 }
                 break;
         }
@@ -110,13 +122,25 @@ foreach ($table->getValueFields() as $field) {
 
     $diffs[$change]['rows'] .= '
         <tr>
-            <th>' . $field->getLabel() . '</th>
+            <th>' . rex_yform_history_helper::getFieldTypeIcon($field) . ' ' . $field->getLabel() . '</th>
             <td>' . $currentValue . '</td>
             <td>' . $historyValue . '</td>
         </tr>';
+
+    // remove field from dataset to collect meanwhile deleted fields
+    unset($data[$field->getName()]);
 }
 
-//
+foreach ($data as $field => $value) {
+    $diffs['removed']['count']++;
+    $diffs['removed']['rows'] .= '
+        <tr>
+            <th><i data-toggle="tooltip" data-placement="top" title="" class="rex-icon fas fa-question" data-original-title="' .
+                rex_i18n::msg('yform_manager_type_name') . ': ' . rex_i18n::msg('yform_manager_type_unknown') . '"></i> ' . $field . '</th>
+            <td><em>' . rex_i18n::msg('yform_history_diff_no_longer_existing') . '</em></td>
+            <td>' . $value . '</td>
+        </tr>';
+}
 
 // build restore url
 $restoreUrl = http_build_query([
@@ -140,17 +164,19 @@ $content = '
 
 foreach ($diffs as $change => $diff) {
     $content .= '
-        <header class="panel-heading" '.($diff['rows'] != '' ? 'data-toggle="collapse" data-target="#collapse-history-table-'. $change .'"' : '').'>
-            <div class="panel-title"><i class="rex-icon '. $diff['icon'] .'"></i> '. rex_i18n::msg('yform_history_diff_headline_'.$change) .' ['. $diff['count'] .']</div>
+        <header class="panel-heading" ' . ($diff['rows'] != '' ? 'data-toggle="collapse" data-target="#collapse-history-table-' . $change . '"' : '') . '>
+            <div class="panel-title"><i class="rex-icon ' . $diff['icon'] . '"></i> ' . rex_i18n::msg('yform_history_diff_headline_' . $change) .
+                ' [' . ($diff['count'] > 0 ? '<b>' : '') . $diff['count'] . ($diff['count'] > 0 ? '</b>' : '') . ']' . '
+            </div>
         </header>
-        <div id="collapse-history-table-'. $change .'" '.($diff['rows'] != '' ? 'class="panel-collapse collapse '.($change == 'changed' ? 'in' : '').'"' : '').'>';
+        <div id="collapse-history-table-' . $change . '" ' . ($diff['rows'] != '' ? 'class="panel-collapse collapse ' . ($change == 'changed' ? 'in' : '') . '"' : '') . '>';
 
     if($diff['rows'] != '') {
         $content .= '       
-            <table class="table history-diff-table" data-change-mode="'. $change .'">
+            <table class="table history-diff-table" data-change-mode="' . $change . '">
                 <thead>
                     <tr>
-                        <th class="rex-table-width-6">' . rex_i18n::msg('yform_tablefield') . '</th>                    
+                        <th class="rex-table-width-7 field-name"><i class="rex-icon-"></i>' . rex_i18n::msg('yform_tablefield') . '</th>                    
                         <th class="rex-table-width-10">' . rex_i18n::msg('yform_history_dataset_current') . '</th>
                         <th class="rex-table-width-10">'. date('d.m.Y H:i:s', strtotime($timestamp)) .'</th>
                     </tr>
@@ -165,11 +191,17 @@ foreach ($diffs as $change => $diff) {
 $content .= '
     </div>
     <div class="modal-footer">
-        <a href="index.php?page=yform/manager/data_edit?'. $restoreUrl .'" class="btn btn-warning" onclick="return confirm(\'' . rex_i18n::msg('yform_history_restore_confirm') . '\')">'.
+        <a href="index.php?page=yform/manager/data_edit?' . $restoreUrl . '" class="btn btn-warning" onclick="return confirm(\'' . rex_i18n::msg('yform_history_restore_confirm') . '\')">'.
             rex_i18n::msg('yform_history_restore_this').
         '</a>
         <button type="button" class="btn btn-default" data-dismiss="modal" aria-hidden="true">&times;</button>
     </div>
+    <script>
+        // init bootstrap tooltips
+        $(".modal#rex-yform-history-modal [data-toggle=\"tooltip\"]").tooltip({
+            html: true
+        })
+    </script>
 ';
 
 echo $content;

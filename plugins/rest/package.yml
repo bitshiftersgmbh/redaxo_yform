@@ -1,7 +1,8 @@
 package: yform/rest
-version: '4.1.1'
+version: '4.2.1'
+license: MIT
 author: 'Jan Kristinus'
-supportpage: 'https://github.com/yakamara/redaxo_yform/issues'
+supportpage: 'https://github.com/yakamara/yform/issues'
 
 page:
     title: 'translate:yform_rest'

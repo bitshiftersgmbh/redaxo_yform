@@ -114,7 +114,7 @@ $userQuery = 'SELECT
         `table_name` = ' . $sql->escape($table->getTableName());
 
 $list = rex_list::factory($listQuery, defaultSort: [
-    'timestamp' => 'desc',
+    'timestamp' => 'asc',
     'hid' => 'asc',
 ]);
 $list->addFormAttribute('class', 'history-list');
@@ -204,6 +204,9 @@ $list->addColumn('restore', $restoreColumnBody, -1, ['<th></th>', $actionsCell])
 $list->setColumnParams('restore', ['subfunc' => 'restore', 'data_id' => '###dataset_id###', 'history_id' => '###hid###'] + rex_csrf_token::factory($_csrf_key)->getUrlParams());
 $list->addLinkAttribute('restore', 'onclick', 'return confirm(\'' . rex_i18n::msg('yform_history_restore_confirm') . '\');');
 
+$historyDatasets = [];
+$sql = rex_sql::factory();
+
 // revision / number
 $revision = 'revision';
 $list->addColumn($revision, '', 2, [
@@ -211,12 +214,69 @@ $list->addColumn($revision, '', 2, [
     '<td class="special-states">###VALUE###</td>'
 ]);
 
-$rev = $list->getRows();
+rex::setProperty('YFORM_HISTORY_REVISION', 0);
+
 $list->setColumnFormat(
     $revision,
     'custom',
-    static function($a) use (&$rev) {
-        return $rev--;
+    static function($a) use (&$rev, &$historyDatasets, &$table, &$sql, &$dataset) {
+        // early column ... store all values for current revision
+        $rev = rex::getProperty('YFORM_HISTORY_REVISION', 0);
+
+        $historyDatasets[$rev] = [
+            'values' => [],
+            'added' => [],
+            'added_current' => [],
+            'removed' => [],
+            'removed_current' => [],
+        ];
+
+        $data = $sql->getArray(sprintf('SELECT * FROM %s WHERE history_id = %d', rex::getTable('yform_history_field'), $a['list']->getValue('hid')));
+        $data = array_column($data, 'value', 'field');
+
+        foreach ($table->getValueFields() as $field) {
+            $class = 'rex_yform_value_' . $field->getTypeName();
+
+            if (!array_key_exists($field->getName(), $data)) {
+                if(method_exists($class, 'getListValue')) {
+                    $historyDatasets[$rev]['added'][$field->getName()] = $historyDatasets[$rev]['added_current'][$field->getName()] = true;
+                }
+
+                continue;
+            }
+
+            // set data
+            $historyDatasets[$rev]['values'][$field->getName()] = $data[$field->getName()];
+            unset($data[$field->getName()]);
+        }
+
+        // check for deleted fields in historic data
+        foreach ($data as $field => $value) {
+            $historyDatasets[$rev]['removed_current'][$field] = $value;
+        }
+
+        // compare with prev
+        if(isset($historyDatasets[$rev - 1])) {
+            $prev = &$historyDatasets[$rev - 1];
+
+            // clean up added
+            foreach($historyDatasets[$rev]['added'] as $field => $true) {
+                if(isset($prev['added'][$field])) {
+                    unset($prev['added'][$field]);
+                }
+            }
+
+            // handle removed
+            foreach($prev['removed_current'] as $field => $value) {
+                if(!isset($historyDatasets[$rev]['removed_current'][$field])) {
+                    $historyDatasets[$rev]['removed'][$field] = $value;
+                }
+            }
+        }
+
+        rex::setProperty('YFORM_HISTORY_REVISION', $rev + 1);
+        // dump($historyDatasets);
+        return $rev;
     }
 );
 
@@ -227,29 +287,26 @@ $list->addColumn($changesCurrent, '', 3, [
     '<td>###VALUE###</td>'
 ]);
 
-$sql = rex_sql::factory();
-$historyDatasets = [];
-
 $viewColumnLayout = $list->getColumnLayout('view');
 
 $list->setColumnFormat(
     $changesCurrent,
     'custom',
     static function($a) use (&$dataset, $table, $sql, &$historyDatasets, $actionsCell, $normalCell, $changesCurrent) {
-        $changes = 0;
+        $rev = rex::getProperty('YFORM_HISTORY_REVISION', 0) - 1;
 
-        if(!isset($historyDatasets[$a['list']->getValue('hid')])) {
-            $data = $sql->getArray(sprintf('SELECT * FROM %s WHERE history_id = %d', rex::getTable('yform_history_field'), $a['list']->getValue('hid')));
-            $data = array_column($data, 'value', 'field');
-            $historyDatasets[$a['list']->getValue('hid')] = $data;
-        }
+        $changes = 0;
+        $added = count($historyDatasets[$rev]['added_current']);
+        $removed = count($historyDatasets[$rev]['removed_current']);
+
+        $historyDataset = &$historyDatasets[$rev]['values'];
 
         foreach ($table->getValueFields() as $field) {
-            if (!array_key_exists($field->getName(), $historyDatasets[$a['list']->getValue('hid')])) {
+            if (!array_key_exists($field->getName(), $historyDataset)) {
                 continue;
             }
 
-            $historyValue = $historyDatasets[$a['list']->getValue('hid')][$field->getName()];
+            $historyValue = $historyDataset[$field->getName()];
             $currentValue = ($dataset->hasValue($field->getName()) ? $dataset->getValue($field->getName()) : '-');
 
             if("".$historyValue != "".$currentValue) {
@@ -257,6 +314,7 @@ $list->setColumnFormat(
             }
         }
 
+        // handle actions column
         if($changes == 0) {
             $a['list']->setColumnLayout($changesCurrent, ['<th></th>', '<td class="current-dataset-row">###VALUE###</td>']);
             $a['list']->setColumnLayout('view', ['<th></th>', '<td></td>']);
@@ -267,7 +325,12 @@ $list->setColumnFormat(
             $a['list']->setColumnLayout('restore', ['<th></th>', $actionsCell]);
         }
 
-        return $changes;
+        return $changes.
+                    ($added > 0 || $removed > 0 ?
+                        ' ('.($added > 0 ? '+'.$added.' '.rex_i18n::msg('yform_history_diff_added') : '').
+                             ($removed > 0 ? ($added > 0 ? ', ' : '').'+'.$removed.' '.rex_i18n::msg('yform_history_diff_removed') : '')
+                        .')' : ''
+                    );
     }
 );
 
@@ -284,32 +347,31 @@ $list->setColumnFormat(
     $changesPrev,
     'custom',
     static function($a) use (&$dataset, $table, $sql, &$historyDatasets) {
-        $changes = 0;
+        $rev = rex::getProperty('YFORM_HISTORY_REVISION', 0) - 1;
 
-        if(!isset($historyDatasets[$a['list']->getValue('hid')])) {
-            $data = $sql->getArray(sprintf('SELECT * FROM %s WHERE history_id = %d', rex::getTable('yform_history_field'), $a['list']->getValue('hid')));
-            $data = array_column($data, 'value', 'field');
-            $historyDatasets[$a['list']->getValue('hid')] = $data;
-            dump("getting data for ".$a['list']->getValue('hid').' da');
+        $changes = 0;
+        $added = (isset($historyDatasets[$rev - 1]) ? count($historyDatasets[$rev - 1]['added']) : 0);
+        $removed = count($historyDatasets[$rev]['removed']);
+
+        $historyDataset = &$historyDatasets[$rev]['values'];
+
+        if(isset($historyDatasets[$rev - 1])) {
+            $prevHistoryDataset = $historyDatasets[$rev - 1]['values'];
+
+            foreach ($historyDataset as $field => $value) {
+                if("".$historyDataset[$field] != "".$prevHistoryDataset[$field]) {
+                    $changes++;
+                    // dump($rev.": ".$historyDataset[$field]." - ".$prevHistoryDataset[$field]." - ".$changes);
+                }
+            }
         }
 
-//        $data = $sql->getArray(sprintf('SELECT * FROM %s WHERE history_id = %d', rex::getTable('yform_history_field'), $a['list']->getValue('hid')));
-//        $data = array_column($data, 'value', 'field');
-//
-//        foreach ($table->getValueFields() as $field) {
-//            if (!array_key_exists($field->getName(), $data)) {
-//                continue;
-//            }
-//
-//            $historyValue = $data[$field->getName()];
-//            $currentValue = ($dataset->hasValue($field->getName()) ? $dataset->getValue($field->getName()) : '-');
-//
-//            if("".$historyValue != "".$currentValue) {
-//                $changes++;
-//            }
-//        }
-
-        return $changes;
+        return $changes.
+                    ($added > 0 || $removed > 0 ?
+                        ' ('.($added > 0 ? '+'.$added.' '.rex_i18n::msg('yform_history_diff_added') : '').
+                             ($removed > 0 ? ($added > 0 ? ', ' : '').'+'.$removed.' '.rex_i18n::msg('yform_history_diff_removed') : '')
+                        .')' : ''
+                    );
     }
 );
 

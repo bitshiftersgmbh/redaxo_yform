@@ -9,6 +9,39 @@
  */
 class rex_yform_history_helper
 {
+    const FIELD_TYPE_ICONS = [
+        'question' => 'question',
+
+        'checkbox' => 'square-check',
+        'select' => 'list-check',
+        'choice' => 'list-check',
+        'choice_radio' => 'circle-dot',
+        'choice_checkbox' => 'square-check',
+        'date' => 'calendar',
+        'datetime' => 'calendar-day',
+        'datestamp' => 'calendar-day',
+        'be_link' => 'link',
+        'custom_link' => 'link',
+        'be_media' => 'photo-film',
+        'be_manager_relation' => 'database',
+        'be_table' => 'table',
+        'be_user' => 'user',
+        'integer' => '1',
+        'number' => '1',
+        'ip' => 'network-wired',
+        'generate_key' => 'key',
+        'php' => 'code',
+        'prio' => 'arrow-up-1-9',
+        'signature' => 'signature',
+        'submit' => 'fire',
+        'time' => 'clock',
+        'upload' => 'upload',
+        'uuid' => 'key',
+        'email' => 'at'
+    ];
+
+    const FIELD_TYPE_ICON_WEIGHT_CLASS = 'far';
+
     /**
      * detect diffs in 2 strings
      * @param $old
@@ -78,5 +111,80 @@ class rex_yform_history_helper
         }
 
         return $ret;
+    }
+
+    /**
+     * get icon for yform field type
+     * @param rex_yform_manager_field $field
+     * @param bool $addPrefix
+     * @param bool $outputHtml print <i></i>
+     * @param bool $addTooltip
+     * @param string $tooltipPlacement
+     * @return string
+     * @author Peter Schulze | p.schulze[at]bitshifters.de
+     * @created 22.04.2024
+     */
+    public static function getFieldTypeIcon(rex_yform_manager_field $field, bool $addPrefix = true, bool $outputHtml = true, bool $addTooltip = true, string $tooltipPlacement = 'top'):string
+    {
+        $icon = self::FIELD_TYPE_ICONS[$field->getTypeName()] ?? 'default';
+        $tag = isset(self::FIELD_TYPE_ICONS[$field->getTypeName()]) ? 'i' : 'span';
+
+        switch($field->getTypeName()) {
+            case 'choice':
+                $expanded = (bool)(int)$field->getElement('expanded');
+                $multiple = (bool)(int)$field->getElement('multiple');
+
+                if($expanded && $multiple) {
+                    $icon = self::FIELD_TYPE_ICONS['choice_checkbox'];
+                } elseif($expanded) {
+                    $icon = self::FIELD_TYPE_ICONS['choice_radio'];
+                }
+                break;
+        }
+
+        return ($outputHtml ? '<' .
+                    $tag .
+                    ($addTooltip ? ' data-toggle="tooltip" data-placement="' . $tooltipPlacement . '" title="' . rex_i18n::msg('yform_manager_type_name') . ': ' . $field->getTypeName() . '"' : '') .
+                    ' class="' : ''
+               ).
+               ($icon !== 'default' ? self::FIELD_TYPE_ICON_WEIGHT_CLASS . ' ' : '').($addPrefix ? 'rex-icon ' : '') . 'fa-' . $icon .
+               ($outputHtml ? '"></' . $tag . '>' : '');
+    }
+
+    /**
+     * get field value
+     * @param rex_yform_manager_field $field
+     * @param rex_yform_manager_dataset $dataset
+     * @param rex_yform_manager_table $table
+     * @return string
+     * @author Peter Schulze | p.schulze[at]bitshifters.de
+     * @created 22.04.2024
+     */
+    public static function getFieldValue(rex_yform_manager_field $field, rex_yform_manager_dataset $dataset, rex_yform_manager_table $table): string {
+        $class = 'rex_yform_value_' . $field->getTypeName();
+        $currentValue = ($dataset->hasValue($field->getName()) ? $dataset->getValue($field->getName()) : '-');
+
+        if (is_callable($class, 'getListValue') && !in_array($field->getTypeName(), ['text','textarea'])) {
+            /** @var $class rex_yform_value_abstract */
+
+            // get (formatted) value for current entry
+            if($dataset->hasValue($field->getName())) {
+                $currentValue = $class::getListValue([
+                    'value' => $currentValue,
+                    'subject' => $currentValue,
+                    'field' => $field->getName(),
+                    'params' => [
+                        'field' => $field->toArray(),
+                        'fields' => $table->getFields()
+                    ],
+                ]);
+            } else {
+                $currentValue = '-';
+            }
+        } else {
+            $currentValue = rex_escape($currentValue);
+        }
+
+        return $currentValue;
     }
 }

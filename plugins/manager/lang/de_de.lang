@@ -93,6 +93,7 @@ yform_manager_table_features = Aktivierte Optionen
 
 yform_manager_type_id = Typ
 yform_manager_type_name = Typname
+yform_manager_type_unknown = unbekannt
 
 yform_manager_tableset = Tableset
 yform_manager_table = Tabelle
@@ -262,6 +263,10 @@ yform_history_diff_headline_added = Hinzugefügte Felder
 yform_history_diff_headline_removed = Entfernte Felder
 yform_history_diff_to_current = Änderungen (zu aktuell)
 yform_history_diff_to_previous = Änderungen (zu vorherig)
+yform_history_diff_added = neu
+yform_history_diff_removed = entfernt
+yform_history_diff_not_yet_existing = noch nicht vorhanden
+yform_history_diff_no_longer_existing = nicht mehr vorhanden
 
 yform_manager_show_form_notation = Formular-Code
 

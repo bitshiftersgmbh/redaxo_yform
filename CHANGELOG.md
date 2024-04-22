@@ -1,6 +1,31 @@
 Changelog
 =========
 
+Version 4.2.0 - 22.02.2024
+--------------------------
+
+### Korrekturen
+
+* Feld: be_manager_relation um table type 'int(10) unsigned' ergänzt
+* Feld: choice um table type 'int(10) unsigned' ergänzt
+* Fehler beim E-Mail-Template löschen korrigiert
+* Unique ID der shadow Formulare für inline Darstellungen verbessert.
+* Textkorrekturen
+* Manager: Javascriptumbau um besser mit strickten CSP Headern umgehen zu können
+* Feld: index wird nun getrimt
+* Widget Debug JS Alert() entfernt
+* Workflows in github ergänzt
+* Dokumentation verbessert
+* field: Callback um pre/post/normal ergänzt
+* REST API: Erweitert um Funktionen zur Bearbeitung der Feldausgabe preFunc/postFunc/getItemFunc
+* REST API: "*" nun möglich um alle Felder freizugeben
+* Optimierung der visuellen Ausgabe von Daten in Listen
+* objparam: warning_intro ergänzt.
+* Fehler bei Choice und identischen Feldern behoben
+* field: be_table: YForm Verwendung verbessert
+
+Dank geht an Norbert Michel, Markus Staab, Alexander Walther, Thomas Blum, Thomas Rolinger, Thomas Skerbis und Daniel Weingart
+
 Version 4.1.1 - 03.04.2023
 --------------------------
 

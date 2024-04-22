@@ -1,11 +1,11 @@
 package: yform/email
-version: '4.1.1'
+version: '4.2.1'
+license: MIT
 author: 'Jan Kristinus'
-supportpage: 'https://github.com/yakamara/redaxo_yform/issues'
+supportpage: 'https://github.com/yakamara/yform/issues'
 
 page:
     title: 'translate:yform_email_templates'
-    perm: yform[email]
     pjax: true
     subpages:
         index: { title: 'translate:yform_email_templates', hidden: true }
