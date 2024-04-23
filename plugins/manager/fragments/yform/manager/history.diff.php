@@ -26,6 +26,7 @@ $diffs = [
     'added' => ['icon' => 'fas fa-layer-plus', 'count' => 0, 'rows' => ''],
     'removed' => ['icon' => 'far fa-layer-minus', 'count' => 0, 'rows' => ''],
     'unchanged' => ['icon' => 'fas fa-equals', 'count' => 0, 'rows' => ''],
+    // 'prev_changed' => ['icon' => 'fas fa-not-equal', 'count' => 0, 'rows' => ''],
 ];
 
 

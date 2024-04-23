@@ -1,5 +1,3 @@
-yform_function_button = Aktion
-
 yform_manager = Table Manager
 
 navigation_manager = Tabellen
@@ -14,7 +12,7 @@ yform_errors_occurred = Es sind Fehler aufgetreten
 yform_help_empty = Leereinträge können mit <br />"(empty)" gesucht werden
 yform_help_multipleselect = Mehrfachauswahl mit gedrückter CTRL/CMD Taste
 yform_updatetable_with_delete = mit Feldlöschung
-yform_updatetable_with_delete_confirm = Wirklich aktualisieren mit Feldlöschung ?
+yform_updatetable_with_delete_confirm = Wirklich aktualisieren mit Feldlöschung?
 
 yform_relation_move_first_data = Ausgewählten Datensatz an den Anfang verschieben
 yform_relation_move_up_data = Ausgewählten Datensatz nach oben verschieben
@@ -258,9 +256,10 @@ yform_history_delete_confirm = Historie wirklich löschen?
 yform_history_delete_success = Die Historien-Datensätze wurden gelöscht.
 yform_history_revision = Revision/Änderung
 yform_history_diff_headline_changed = Geänderte Werte
-yform_history_diff_headline_unchanged = unveränderte Werte
+yform_history_diff_headline_unchanged = Unveränderte Werte
 yform_history_diff_headline_added = Hinzugefügte Felder
 yform_history_diff_headline_removed = Entfernte Felder
+yform_history_diff_headline_prev_changed = Änderungen gegenüber vorheriger Version
 yform_history_diff_to_current = Änderungen (zu aktuell)
 yform_history_diff_to_previous = Änderungen (zu vorherig)
 yform_history_diff_added = neu
