@@ -626,6 +626,8 @@ class rex_yform_value_be_manager_relation extends rex_yform_value_abstract
                     $fields[] = 't0.' . $db->escapeIdentifier($c['name']);
                 }
             }
+            $fields = rex_extension::registerPoint(new rex_extension_point('YFORM_BE_MANAGER_RELATION_QUERY_FIELDS', $fields, ['table' => $tableObject]));
+            
             $order = 't0.' . $db->escapeIdentifier($tableObject['list_sortfield'] ?: 'id') . ' ' . ($tableObject['list_sortorder'] ?: 'ASC');
             $db_array = $db->getArray('select t0.id, ' . implode(', ', $fields) . ' from ' . $db->escapeIdentifier($table) . ' t0' . $join . $where . ' ORDER BY ' . $order);
             foreach ($db_array as $entry) {
